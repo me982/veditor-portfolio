@@ -1,16 +1,11 @@
-
-Monster <ryansection25@gmail.com>
-8:42 PM (0 minutes ago)
-to me
-
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Veditor — Portfolio (fixed)</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Veditor — Portfolio</title>
 
-<!-- Tailwind CDN (for convenience) -->
+<!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- GSAP for smooth animations -->
@@ -18,85 +13,143 @@ to me
 
 <style>
   :root{
-    --bg-dark:#040405;
-    --accent-orange:#ff7a00;
-    --accent-blue:#1e3a8a;
-    --accent-purple:#2b006b;
+    --bg-dark: #040405;
+    --accent-orange: #ff7a00;
+    --accent-blue: #1e3a8a;
+    --accent-purple: #2b006b;
   }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#eaf1ff;background:var(--bg-dark);-webkit-font-smoothing:antialiased}
-  /* Layered backgrounds */
+
+  html,body { height:100%; margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background:var(--bg-dark); color:#eaf1ff; }
+
+  /* --- Layered backgrounds --- */
   .bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
   .bg-image { position:absolute; inset:0; background-position:center; background-size:cover; will-change:transform,opacity,filter; }
-  /* Slightly reduce overlay opacity so images show through */
-  .gradient-overlay { position:fixed; inset:0; z-index:1; pointer-events:none; mix-blend-mode:overlay; opacity:0.72; background: linear-gradient(120deg, rgba(255,122,0,0.44), rgba(43,0,107,0.28), rgba(30,58,138,0.16), rgba(0,0,0,0.6)); background-size:400% 400%; animation: gradientMove 20s linear infinite; }
-  @keyframes gradientMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+  /* gradient overlay that moves */
+  .gradient-overlay {
+    position:fixed; inset:0; z-index:1; pointer-events:none; mix-blend-mode:overlay; opacity:0.78;
+    background: linear-gradient(120deg, rgba(255,122,0,0.44), rgba(43,0,107,0.28), rgba(30,58,138,0.16), rgba(0,0,0,0.6));
+    background-size: 400% 400%;
+    filter: saturate(1.03) contrast(1.02);
+    animation: gradientMove 20s linear infinite;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 50%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   /* particles canvas */
-  #particles{position:fixed; inset:0; z-index:0; pointer-events:none;}
-  /* content above backgrounds */
-  main{position:relative; z-index:2;}
-  header{position:relative; z-index:3;}
-  /* hero grid */
-  .hero{max-width:1200px; margin:0 auto; padding:4.5rem 1.5rem; display:grid; grid-template-columns:420px 1fr; gap:30px; align-items:center}
-  @media (max-width:940px){ .hero{grid-template-columns:1fr} .portrait-wrap{order:-1;height:420px} }
-  .portrait-wrap{height:500px;border-radius:16px;overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border:1px solid rgba(255,255,255,0.03); box-shadow:0 20px 60px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; transform:translateY(60px); opacity:0}
-  .portrait{width:100%; height:100%; object-fit:cover; display:block; border-radius:12px}
-  .portrait-glow{position:absolute; inset:-10% auto auto -10%; width:60%; height:60%; background:radial-gradient(circle at 30% 20%, rgba(255,122,0,0.16), rgba(43,0,107,0.10), transparent 60%); filter:blur(40px); z-index:0; pointer-events:none}
-  .typewriter{font-weight:800; font-size: clamp(22px,4.2vw,36px); color:white; display:inline-block}
-  .cursor{display:inline-block; width:2px; height:1.05em; background:var(--accent-orange); margin-left:8px; animation:blink .9s step-end infinite; vertical-align:middle}
-  @keyframes blink{50%{opacity:0}}
-  .btn{display:inline-flex; align-items:center; gap:12px; padding:12px 18px; border-radius:12px; background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); color:white; font-weight:600; box-shadow:0 8px 30px rgba(79,70,229,0.12)}
-  .glow-icon{width:56px;height:56px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.04));border:1px solid rgba(255,255,255,0.03);transition:transform .25s, box-shadow .25s}
-  .glow-icon:hover{transform:translateY(-6px) scale(1.03); box-shadow: 0 14px 40px rgba(255,122,0,0.12), 0 6px 18px rgba(43,0,107,0.08)}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:14px; padding:16px; border:1px solid rgba(255,255,255,0.03)}
-  /* ensure iframe area visible */
-  iframe{background: #000; border-radius:8px}
-  /* small help text for missing assets */
-  .asset-missing{display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:13px;padding:20px}
+  #particles { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+  /* main content sits above backgrounds */
+  main { position:relative; z-index:2; }
+
+  header { position:relative; z-index:3; }
+
+  /* layout */
+  .hero {
+    max-width:1200px; margin:0 auto; padding:5.25rem 1.25rem; display:grid; grid-template-columns:420px 1fr; gap:36px; align-items:center;
+  }
+  @media (max-width:940px) {
+    .hero { grid-template-columns:1fr; padding-top:3rem; gap:24px; }
+    .portrait-wrap { order:-1; height:420px; }
+  }
+
+  /* portrait card */
+  .portrait-wrap {
+    height:500px; border-radius:16px; overflow:hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+    border:1px solid rgba(255,255,255,0.03); box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    display:flex; align-items:center; justify-content:center; transform: translateY(60px); opacity:0;
+    will-change: transform, opacity;
+  }
+  .portrait { width:100%; height:100%; object-fit:cover; display:block; border-radius:12px; }
+
+  .portrait-glow {
+    position:absolute; inset:-12% auto auto -12%; width:62%; height:62%;
+    background: radial-gradient(circle at 30% 20%, rgba(255,122,0,0.14), rgba(43,0,107,0.10), transparent 60%);
+    filter: blur(40px); z-index:0; pointer-events:none;
+  }
+
+  /* hidden on scroll */
+  .portrait-hidden { transform: translateY(120px) scale(.98); opacity:0; }
+
+  /* typewriter */
+  .typewriter { font-weight:800; font-size: clamp(22px, 4.2vw, 36px); line-height:1; color:#fff; display:inline-block; }
+  .cursor { display:inline-block; width:2px; height:1.05em; background:var(--accent-orange); margin-left:8px; animation: blink .9s step-end infinite; vertical-align:middle; }
+  @keyframes blink { 50% { opacity:0 } }
+
+  /* buttons */
+  .btn { display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:12px; background:linear-gradient(90deg, var(--accent-blue), var(--accent-orange)); color:#fff; font-weight:600; box-shadow: 0 8px 30px rgba(79,70,229,0.12); }
+
+  /* soft glowing icons */
+  .glow-icon {
+    width:56px; height:56px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.04));
+    border: 1px solid rgba(255,255,255,0.03); transition: transform .25s, box-shadow .25s;
+  }
+  .glow-icon:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 14px 40px rgba(255,122,0,0.12), 0 6px 18px rgba(43,0,107,0.08); }
+
+  /* cards & project tiles */
+  .card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:14px; padding:16px; border:1px solid rgba(255,255,255,0.03); }
+
+  iframe { background: #000; border-radius:8px; }
+
+  /* small asset fallback helper */
+  .asset-missing { display:flex; align-items:center; justify-content:center; color:#9aa4b2; font-size:13px; padding:20px; }
 </style>
 </head>
 <body>
 
-  <!-- Fixed layered background images -->
+  <!-- Layered background images (fixed) -->
   <div class="bg-layer" aria-hidden="true">
-    <div id="layer-forest" class="bg-image" style="background-image:url('bg-forest.jpg'); opacity:0.28; filter:grayscale(.2) contrast(.9)"></div>
-    <div id="layer-orange" class="bg-image" style="background-image:url('bg-orange.jpg'); opacity:0.18; mix-blend-mode:screen"></div>
-    <div id="layer-layers" class="bg-image" style="background-image:url('bg-layer1.jpg'); opacity:0.22; filter:contrast(.9)"></div>
+    <div id="layer-forest" class="bg-image" style="background-image:url('bg-forest.jpg'); opacity:0.28; filter:grayscale(.2) contrast(.9);"></div>
+    <div id="layer-orange" class="bg-image" style="background-image:url('bg-orange.jpg'); opacity:0.18; mix-blend-mode:screen;"></div>
+    <div id="layer-layers" class="bg-image" style="background-image:url('bg-layer1.jpg'); opacity:0.22; filter:contrast(.9);"></div>
   </div>
 
   <!-- animated gradient overlay (above images) -->
   <div class="gradient-overlay" aria-hidden="true"></div>
 
-  <!-- particles canvas -->
+  <!-- particles canvas for glowing orbs -->
   <canvas id="particles"></canvas>
 
   <main>
     <!-- header -->
-    <header class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+    <header class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between" style="position:relative; z-index:3;">
       <a href="#" class="text-2xl font-extrabold" style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); -webkit-background-clip:text; color:transparent;">Veditor</a>
-      <nav class="hidden md:flex gap-6 items-center text-sm text-slate-200">
+
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-200">
         <a href="#about" class="hover:underline">About</a>
         <a href="#work" class="hover:underline">Work</a>
         <a href="#projects" class="hover:underline">Projects</a>
         <a href="#contact" class="btn">Contact</a>
       </nav>
+
       <div class="md:hidden text-slate-200">☰</div>
     </header>
 
     <!-- HERO -->
-    <section id="about" class="hero">
+    <section id="about" class="hero" style="position:relative; z-index:3;">
       <!-- portrait -->
-      <div class="portrait-wrap" id="portraitWrap">
+      <div class="portrait-wrap card" id="portraitWrap">
         <div class="portrait-glow" aria-hidden="true"></div>
-        <!-- IMPORTANT: portrait.png must exist in the same folder -->
-        <img id="portraitImg" class="portrait" src="portrait.png" alt="Veditor portrait" onerror="this.style.display='none'; document.getElementById('portraitFallback').style.display='flex'">
-        <div id="portraitFallback" class="asset-missing" style="display:none">Portrait not found — please put <strong>portrait.png</strong> in the same folder</div>
+
+        <!-- IMPORTANT: drop your portrait file named exactly 'portrait.png' in the same folder -->
+        <img id="portraitImg" class="portrait" src="portrait.png" alt="Veditor portrait"
+             onerror="this.style.display='none'; document.getElementById('portraitFallback').style.display='flex'">
+        <div id="portraitFallback" class="asset-missing" style="display:none">
+          Portrait not found — put <strong>portrait.png</strong> in the same folder as index.html
+        </div>
       </div>
 
-      <!-- text column -->
-      <div style="padding-left:6px;">
+      <!-- hero text column -->
+      <div style="padding-left:8px; position:relative; z-index:4;">
         <div class="mb-3 inline-flex items-center gap-3">
-          <div style="width:46px;height:46px;border-radius:10px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange));display:flex;align-items:center;justify-content:center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="width:46px;height:46px;border-radius:10px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange));display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
           </div>
           <div class="text-sm text-indigo-200 font-medium">Discover</div>
         </div>
@@ -105,24 +158,31 @@ to me
           <span id="typewriter" class="typewriter"></span><span id="cursor" class="cursor"></span>
         </div>
 
-        <h1 class="text-5xl font-extrabold mt-6 mb-4">Veditor <span style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); -webkit-background-clip:text; color:transparent">— Motion & Editing</span></h1>
+        <h1 class="text-5xl font-extrabold mt-6 mb-4">Veditor
+          <span style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); -webkit-background-clip:text; color:transparent"> — Motion & Editing</span>
+        </h1>
 
-        <p class="text-gray-300 max-w-2xl mb-6">I craft cinematic edits, motion graphics, and sound design. I turn raw footage into unforgettable visuals — reels, commercials, and social content.</p>
+        <p class="text-gray-300 max-w-2xl mb-6">I craft cinematic edits, motion graphics, and sound design. I translate footage into memorable visual stories — reels, commercials, and short films.</p>
 
         <div class="flex items-center gap-4">
           <button class="btn" id="hireBtn">Hire me</button>
           <a href="#work" class="px-4 py-2 rounded-lg border border-white/8 text-gray-200">See work</a>
         </div>
 
+        <!-- icons row (Premiere Pro & After Effects) -->
         <div class="mt-8 flex items-center gap-4">
-          <!-- Premiere Pro icon (inline SVG) -->
           <div class="glow-icon" title="Premiere Pro">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#E882FF"></rect><text x="7" y="17" fill="#1F1F2B" font-weight="700" font-family="Arial" font-size="10">Pr</text></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#E882FF"></rect>
+              <text x="7.5" y="17" fill="#111827" font-weight="700" font-family="Arial" font-size="10">Pr</text>
+            </svg>
           </div>
 
-          <!-- After Effects icon -->
           <div class="glow-icon" title="After Effects">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#9CA3FF"></rect><text x="6" y="17" fill="#0b0b10" font-weight="700" font-family="Arial" font-size="10">Ae</text></svg>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="#9CA3FF"></rect>
+              <text x="7.2" y="17" fill="#0b0b10" font-weight="700" font-family="Arial" font-size="10">Ae</text>
+            </svg>
           </div>
 
           <div class="text-sm text-gray-300 ml-4">Premiere Pro &middot; After Effects</div>
@@ -130,25 +190,28 @@ to me
       </div>
     </section>
 
-    <!-- WORK -->
-    <section id="work" class="max-w-6xl mx-auto px-6">
+    <!-- WORK (featured) -->
+    <section id="work" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
       <div class="card p-6 grid md:grid-cols-2 gap-6">
         <div>
           <h2 class="text-3xl font-bold mb-4">Featured Motion</h2>
-          <p class="text-gray-300 mb-4">Selected reels and highlights showing cinematic edits and procedural motion design.</p>
+          <p class="text-gray-300 mb-4">Selected reels and highlights showing cinematic edits and motion design.</p>
           <a href="#projects" class="btn">View Reels</a>
         </div>
         <div>
           <div style="padding-bottom:56.25%; position:relative; height:0;">
-            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:10px; border:0;" src="https://www.youtube.com/embed/J6FOKuBRyGU" title="YouTube video" allowfullscreen></iframe>
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:10px; border:0;"
+                    src="https://www.youtube.com/embed/J6FOKuBRyGU" title="YouTube video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
       </div>
     </section>
 
     <!-- PROJECTS -->
-    <section id="projects" class="max-w-6xl mx-auto px-6">
+    <section id="projects" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
       <h3 class="text-3xl font-bold mb-6">Projects</h3>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="card">
           <div style="height:180px; background-image:url('bg-layer1.jpg'); background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
@@ -165,13 +228,59 @@ to me
         <div class="card">
           <div style="height:180px; background-image:url('bg-forest.jpg'); background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
           <h4 class="font-semibold">Short: The Drop</h4>
-          <p class="text-gray-400 text-sm">Vertical format social content.</p>
+          <p class="text-gray-400 text-sm">Vertical social content.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANIMATIONS (original video gallery) -->
+    <section id="animations" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
+      <h3 class="text-3xl font-bold mb-6">Animations</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Video 1 -->
+        <div class="card p-4">
+          <div style="padding-bottom:56.25%; position:relative; height:0;">
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:8px; border:0;"
+                    src="https://www.youtube.com/embed/J6FOKuBRyGU?si=9on0PzAUtoJuQIi2" title="The Glitch" allowfullscreen></iframe>
+          </div>
+          <h4 class="mt-4 font-semibold">The Glitch (3D Abstract)</h4>
+          <p class="text-gray-400 text-sm">After Effects / Cinema 4D</p>
+        </div>
+
+        <!-- Video 2 -->
+        <div class="card p-4">
+          <div style="padding-bottom:56.25%; position:relative; height:0;">
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:8px; border:0;"
+                    src="https://www.youtube.com/embed/AOotsDIY_7E?si=Nj25A92aqXt1qta6" title="Explainer Graphics" allowfullscreen></iframe>
+          </div>
+          <h4 class="mt-4 font-semibold">Explainer Graphics</h4>
+          <p class="text-gray-400 text-sm">Motion Graphics</p>
+        </div>
+
+        <!-- Vertical / Short -->
+        <div class="card p-4">
+          <div style="padding-bottom:177.77%; position:relative; height:0;">
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:8px; border:0;"
+                    src="https://www.youtube.com/embed/kUHpL-QXJ_Q" title="Vertical Short" allowfullscreen></iframe>
+          </div>
+          <h4 class="mt-4 font-semibold">Vertical Short: The Drop</h4>
+          <p class="text-gray-400 text-sm">Social Format</p>
+        </div>
+
+        <!-- More videos -->
+        <div class="card p-4">
+          <div style="padding-bottom:177.77%; position:relative; height:0;">
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:8px; border:0;"
+                    src="https://www.youtube.com/embed/I7jRDOrUwek" title="Vertical Short" allowfullscreen></iframe>
+          </div>
+          <h4 class="mt-4 font-semibold">Vertical Short: Geometry</h4>
+          <p class="text-gray-400 text-sm">Abstract</p>
         </div>
       </div>
     </section>
 
     <!-- CONTACT -->
-    <section id="contact" class="max-w-6xl mx-auto px-6">
+    <section id="contact" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
       <div class="card p-6">
         <div class="grid md:grid-cols-2 gap-6 items-center">
           <div>
@@ -179,6 +288,7 @@ to me
             <p class="text-gray-300 mb-4">Let's collaborate on your next project. I’m available for freelance work and creative partnerships.</p>
             <a href="mailto:ryansection25@gmail.com" class="btn">Email</a>
           </div>
+
           <form class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <input class="p-3 bg-transparent border border-white/6 rounded" placeholder="Your name" />
@@ -193,55 +303,89 @@ to me
       </div>
     </section>
 
-    <footer class="text-center text-gray-500 py-6">Veditor © 2024 — Motion & Editing</footer>
+    <footer class="text-center text-gray-500 py-6" style="position:relative; z-index:3;">Veditor © 2024 — Motion & Editing</footer>
   </main>
 
 <script>
-/* ---------- Typing loop ---------- */
+/* =======================
+   Typing loop (auto-type and erase, loops)
+   ======================= */
 (function(){
   const lines = ["Hello, I'm Veditor.", "Video Editor.", "Visual Storyteller.", "I Bring Stories to Life."];
   const el = document.getElementById('typewriter');
   const typingSpeed = 60, erasingSpeed = 30, delayBetween = 1200;
-  let li=0,ch=0,typing=true;
+  let li = 0, ch = 0, typing = true;
+
   function typeLoop(){
     const current = lines[li];
     if(typing){
       if(ch < current.length){
-        el.textContent += current.charAt(ch); ch++; setTimeout(typeLoop, typingSpeed);
-      } else { typing=false; setTimeout(typeLoop, delayBetween); }
+        el.textContent += current.charAt(ch);
+        ch++;
+        setTimeout(typeLoop, typingSpeed);
+      } else {
+        typing = false;
+        setTimeout(typeLoop, delayBetween);
+      }
     } else {
       if(ch > 0){
-        el.textContent = current.substring(0,ch-1); ch--; setTimeout(typeLoop, erasingSpeed);
-      } else { typing=true; li=(li+1)%lines.length; setTimeout(typeLoop,250); }
+        el.textContent = current.substring(0, ch-1);
+        ch--;
+        setTimeout(typeLoop, erasingSpeed);
+      } else {
+        typing = true;
+        li = (li + 1) % lines.length;
+        setTimeout(typeLoop, 250);
+      }
     }
   }
-  setTimeout(typeLoop,500);
+  setTimeout(typeLoop, 500);
 })();
 
-/* ---------- Portrait animation & scroll hide ---------- */
+/* =======================
+   Portrait slide-up on load, hide on scroll down / show on scroll up
+   Uses GSAP for smooth motion
+   ======================= */
 (function(){
   const portraitWrap = document.getElementById('portraitWrap');
-  window.addEventListener('load', ()=> gsap.to(portraitWrap, { y:0, opacity:1, duration:1.0, ease:"power3.out" }));
-  let lastY = window.scrollY, ticking=false;
-  window.addEventListener('scroll', ()=>{
+
+  // Slide up on load
+  window.addEventListener('load', () => {
+    if(portraitWrap){
+      gsap.to(portraitWrap, { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" });
+    }
+  });
+
+  // Hide on scroll down, show on scroll up
+  let lastY = window.scrollY;
+  let ticking = false;
+  window.addEventListener('scroll', () => {
     if(!ticking){
-      window.requestAnimationFrame(()=>{
+      window.requestAnimationFrame(() => {
         const cur = window.scrollY;
-        if(cur > lastY + 12){ gsap.to(portraitWrap, { y:120, opacity:0, duration:.45, ease:"power2.in" }); }
-        else if(cur < lastY - 12){ gsap.to(portraitWrap, { y:0, opacity:1, duration:.6, ease:"power3.out" }); }
-        lastY = cur; ticking=false;
+        if(cur > lastY + 12){
+          // scrolling down
+          gsap.to(portraitWrap, { y: 120, opacity: 0, duration: 0.45, ease: "power2.in" });
+        } else if(cur < lastY - 12){
+          // scrolling up
+          gsap.to(portraitWrap, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
+        }
+        lastY = cur;
+        ticking = false;
       });
-      ticking=true;
+      ticking = true;
     }
   });
 })();
 
-/* ---------- Parallax for background layers ---------- */
+/* =======================
+   Background parallax movement (subtle)
+   ======================= */
 (function(){
   const lForest = document.getElementById('layer-forest'),
         lOrange = document.getElementById('layer-orange'),
         lLayers = document.getElementById('layer-layers');
-  window.addEventListener('scroll', ()=>{
+  window.addEventListener('scroll', () => {
     const s = window.scrollY;
     if(lForest) lForest.style.transform = `translateY(${s * -0.02}px) scale(1.02)`;
     if(lOrange) lOrange.style.transform = `translateY(${s * -0.04}px) scale(1.01)`;
@@ -249,15 +393,27 @@ to me
   });
 })();
 
-/* ---------- Particles (soft glows) ---------- */
+/* =======================
+   Particles (soft glowing orbs)
+   ======================= */
 (function(){
-  const canvas = document.getElementById('particles'), ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('particles');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
   let w = canvas.width = innerWidth, h = canvas.height = innerHeight;
-  const particles = [], count = Math.max(12, Math.floor((w*h)/90000));
-  function rand(a,b){ return Math.random()*(b-a)+a }
+  const particles = [];
+  const count = Math.max(12, Math.floor((w*h)/90000));
+  function rand(a,b){ return Math.random()*(b-a)+a; }
   function create(){
     for(let i=0;i<count;i++){
-      particles.push({ x:rand(0,w), y:rand(0,h), r:rand(6,28), vx:rand(-0.02,0.02), vy:rand(-0.04,0.04), opacity:rand(0.03,0.12) });
+      particles.push({
+        x: rand(0,w),
+        y: rand(0,h),
+        r: rand(6,28),
+        vx: rand(-0.02,0.02),
+        vy: rand(-0.04,0.04),
+        opacity: rand(0.03,0.12)
+      });
     }
   }
   function resize(){ w = canvas.width = innerWidth; h = canvas.height = innerHeight; }
@@ -275,28 +431,47 @@ to me
       grad.addColorStop(0, `rgba(255,122,0,${p.opacity*1.0})`);
       grad.addColorStop(0.45, `rgba(43,0,107,${p.opacity*0.45})`);
       grad.addColorStop(1, `rgba(6,18,64,0)`);
-      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
     }
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-/* ---------- Small asset debug helper: logs missing assets to console ---------- */
+/* =======================
+   Small asset debug helper - logs if files not found (HEAD request)
+   Useful if images don't appear due to filename / case sensitivity
+   ======================= */
 (function(){
-  function checkImage(id, url){
-    fetch(url, {method:'HEAD'}).then(r => {
+  function check(url){
+    fetch(url, { method: 'HEAD' }).then(r => {
       if(!r.ok) console.warn('Asset not loaded:', url);
-    }).catch(()=>console.warn('Asset not loaded (network/filename):', url));
+    }).catch(()=> console.warn('Asset not loaded (network/filename):', url));
   }
-  checkImage('portrait','portrait.png');
-  checkImage('bg-layer1','bg-layer1.jpg');
-  checkImage('bg-orange','bg-orange.jpg');
-  checkImage('bg-forest','bg-forest.jpg');
+  check('portrait.png');
+  check('bg-layer1.jpg');
+  check('bg-orange.jpg');
+  check('bg-forest.jpg');
+})();
+
+/* =======================
+   Smooth anchor scrolling for header links
+   ======================= */
+(function(){
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', (ev)=>{
+      const target = document.querySelector(a.getAttribute('href'));
+      if(target){ ev.preventDefault(); window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' }); }
+    });
+  });
 })();
 </script>
 </body>
 </html>
+
 
 
 
