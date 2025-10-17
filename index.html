@@ -3,352 +3,477 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Veditor — Professional Portfolio</title>
+  <title>Veditor — Portfolio</title>
 
-  <!-- Tailwind CDN -->
+  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- GSAP for smooth timeline animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
+  <!-- tiny typed loop (we implement below without external lib) -->
   <style>
     :root{
-      --bg: #07070a;
-      --panel: #0f1720;
-      --muted: #98a0b3;
-      --accent-blue: #4f46e5; /* indigo */
-      --accent-orange: #ff6f3c;
-      --glass: rgba(255,255,255,0.03);
+      --bg-dark:#040405;
+      --accent-orange:#ff7a00;
+      --accent-blue:#1e3a8a;
+      --accent-purple:#2b006b;
     }
-
     html,body { height:100%; }
-    body {
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: radial-gradient(1200px 600px at 10% 10%, rgba(79,70,229,0.03), transparent 5%),
-                  radial-gradient(800px 500px at 90% 80%, rgba(255,111,60,0.02), transparent 5%),
-                  var(--bg);
-      color: #e6eef8;
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background:var(--bg-dark);
+      color:#e8eefb;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
+      overflow-x:hidden;
     }
 
-    /* Rounded card look consistent with references */
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
-      border: 1px solid rgba(255,255,255,0.04);
-      border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    /* full-screen layered backgrounds */
+    .bg-layer {
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      overflow:hidden;
+      mix-blend-mode:normal;
+    }
+    .bg-image {
+      position:absolute; inset:0; background-position:center; background-size:cover; opacity:1;
+      will-change:transform,opacity,filter;
+      transform-origin:center;
     }
 
-    /* hero image */
+    /* animated gradient overlay */
+    .gradient-overlay {
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
+      mix-blend-mode:overlay;
+      opacity:0.82;
+      background: linear-gradient(120deg, rgba(255,122,0,0.5), rgba(43,0,107,0.38), rgba(30,58,138,0.24), rgba(0,0,0,0.6));
+      background-size: 400% 400%;
+      filter: saturate(1.05) contrast(1.02);
+      animation: gradientMove 18s linear infinite;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      25% { background-position: 50% 50%; }
+      50% { background-position: 100% 50%; }
+      75% { background-position: 50% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* particle canvas under content */
+    #particles {
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+    }
+
+    /* main container sits above bg */
+    main { position:relative; z-index:2; }
+
+    /* hero layout */
+    .hero {
+      padding: 6rem 1.25rem;
+      max-width:1200px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:36px;
+      align-items:center;
+    }
+    @media (max-width: 900px){
+      .hero { grid-template-columns: 1fr; padding-top:3rem; gap:20px; }
+      .portrait-wrap { order:-1; height:420px; }
+    }
+
     .portrait {
-      object-fit: cover;
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:14px;
+      display:block;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 2px 8px rgba(79,70,229,0.06);
+      border:1px solid rgba(255,255,255,0.04);
+      transition: transform .45s cubic-bezier(.2,.9,.2,1), opacity .45s;
+    }
+
+    .portrait-wrap {
+      overflow:hidden;
+      height:500px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+      position:relative;
+      transform:translateY(60px);
+      opacity:0;
+      will-change:transform,opacity;
+    }
+    .portrait-glow {
+      position:absolute; inset: -18% -18% auto auto; width:60%; height:60%;
+      background: radial-gradient(circle at 30% 20%, rgba(255,122,0,0.14), rgba(43,0,107,0.10), transparent 60%);
+      filter: blur(40px);
+      z-index:0;
+      pointer-events:none;
+    }
+    .portrait-inner { position:relative; z-index:5; padding:10px; }
+
+    /* portrait hidden on scroll */
+    .portrait-hidden { transform:translateY(120px) scale(.98); opacity:0; }
+
+    /* heading and typewriter */
+    .typewriter {
+      font-weight:800;
+      font-size: clamp(22px, 4.2vw, 36px);
+      line-height:1;
+      color:white;
+      display:inline-block;
+    }
+    .type-sub {
+      font-size: clamp(14px, 1.6vw, 18px);
+      color:#cfe0ff;
+      margin-top:10px;
       display:block;
     }
+    .cursor {
+      display:inline-block; width:2px; height:1.05em; background:var(--accent-orange); margin-left:8px;
+      animation: blink .9s step-end infinite;
+      vertical-align:middle;
+    }
+    @keyframes blink { 50% { opacity:0 } }
 
-    /* accent overlay lines like reference */
-    .accent-line {
-      height: 3px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange));
+    /* buttons */
+    .btn {
+      display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:12px;
+      background:linear-gradient(90deg, var(--accent-blue), var(--accent-orange));
+      color:white; font-weight:600;
+      box-shadow: 0 8px 30px rgba(79,70,229,0.12);
     }
 
-    /* subtle glowing outline around image */
-    .glow {
-      box-shadow: 0 8px 40px rgba(79,70,229,0.12), inset 0 1px 0 rgba(255,255,255,0.02);
-    }
-
-    /* skill-box customization */
-    .skill-box {
-      background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
-      border-radius: 10px;
+    /* icons soft glow */
+    .glow-icon {
+      width:56px; height:56px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center;
+      background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.04));
       border: 1px solid rgba(255,255,255,0.03);
+      transition: transform .25s, box-shadow .25s;
     }
+    .glow-icon:hover { transform:translateY(-6px) scale(1.03); box-shadow: 0 14px 40px rgba(255,122,0,0.12), 0 6px 18px rgba(43,0,107,0.08); }
 
-    /* small responsive tweaks */
-    @media (max-width: 1024px) {
-      .hero-grid { grid-template-columns: 1fr; }
-      .hero-img-col { order: 2; }
-      .hero-text-col { order: 1; }
-    }
+    /* subtle cards layout */
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:14px; padding:18px; border:1px solid rgba(255,255,255,0.03); }
 
-    /* link hover */
-    a:hover { text-decoration: none; }
+    /* section spacing */
+    section { padding:56px 0; }
 
-    /* soft divider */
-    .soft-divider { border-top: 1px solid rgba(255,255,255,0.03); }
-
-    /* subtle subtle text shadow for titles */
-    .title-shadow { text-shadow: 0 6px 24px rgba(2,6,23,0.6); }
   </style>
 </head>
 <body>
+  <!-- layered images (fixed under everything) -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-image" id="layer-forest" style="background-image: url('bg-forest.jpg'); opacity:.28; filter:grayscale(.3) contrast(.9);"></div>
+    <div class="bg-image" id="layer-orange" style="background-image: url('bg-orange.jpg'); opacity:.18; mix-blend-mode:screen;"></div>
+    <div class="bg-image" id="layer-layers" style="background-image: url('bg-layer1.jpg'); opacity:.22; filter:contrast(.9) blur(0px);"></div>
+  </div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 bg-transparent backdrop-blur-sm py-4">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
-      <a href="#" class="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-orange-400">Veditor</a>
+  <!-- animated gradient overlay (above images) -->
+  <div class="gradient-overlay" aria-hidden="true"></div>
 
-      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-300">
-        <a href="#about" class="hover:text-white transition">About</a>
-        <a href="#animations" class="hover:text-white transition">Animations</a>
-        <a href="#old-projects" class="hover:text-white transition">Old Projects</a>
-        <a href="#contact" class="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-orange-500 text-white font-semibold shadow hover:opacity-95 transition">Contact</a>
+  <!-- particles canvas -->
+  <canvas id="particles"></canvas>
+
+  <main>
+    <!-- header -->
+    <header class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between" style="position:relative; z-index:3;">
+      <a href="#" class="text-2xl font-extrabold" style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); -webkit-background-clip:text; color:transparent;">Veditor</a>
+      <nav class="hidden md:flex gap-6 items-center text-sm text-slate-200">
+        <a href="#about" class="hover:underline">About</a>
+        <a href="#work" class="hover:underline">Work</a>
+        <a href="#projects" class="hover:underline">Projects</a>
+        <a href="#contact" class="btn">Contact</a>
       </nav>
+      <div class="md:hidden text-slate-200">☰</div>
+    </header>
 
-      <!-- Mobile toggle -->
-      <div class="md:hidden">
-        <button id="menu-toggle" class="p-2 rounded-md text-gray-300 hover:text-white focus:outline-none">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-        </button>
+    <!-- HERO -->
+    <section id="about" class="hero" style="position:relative; z-index:3;">
+      <!-- portrait -->
+      <div class="portrait-wrap card portrait-anim" id="portraitWrap">
+        <div class="portrait-glow" aria-hidden="true"></div>
+        <div class="portrait-inner">
+          <img src="portrait.png" alt="Veditor portrait" class="portrait" id="portraitImg">
+        </div>
       </div>
-    </div>
 
-    <!-- mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto px-6 pb-4">
-      <div class="flex flex-col space-y-2 text-gray-300">
-        <a href="#about" class="p-2 rounded-md hover:bg-white/5">About</a>
-        <a href="#animations" class="p-2 rounded-md hover:bg-white/5">Animations</a>
-        <a href="#old-projects" class="p-2 rounded-md hover:bg-white/5">Old Projects</a>
-        <a href="#contact" class="p-2 rounded-md bg-indigo-600 text-white rounded">Contact</a>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-6 py-12">
-
-    <!-- HERO / ABOUT -->
-    <section id="about" class="mb-16">
-      <div class="card p-8 lg:p-12 grid hero-grid" style="grid-template-columns: 420px 1fr; gap:28px; align-items:center;">
-        <!-- IMAGE -->
-        <div class="hero-img-col glow" style="height:420px;">
-          <!-- Replace 'portrait.jpg' with your actual image file name -->
-          <img src="portrait.jpg" alt="Veditor portrait" class="portrait w-full h-full">
+      <!-- text content -->
+      <div class="pl-2 pr-6" style="position:relative; z-index:4;">
+        <div class="mb-3 inline-flex items-center gap-3">
+          <div style="width:46px;height:46px;border-radius:10px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange));display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <div class="text-sm text-indigo-200 font-medium">Discover</div>
         </div>
 
-        <!-- TEXT -->
-        <div class="hero-text-col">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-tr from-indigo-600 to-orange-500">
-              <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.5" d="M4 12h16"></path></svg>
-            </div>
-            <p class="text-sm text-indigo-200 font-medium">Discover</p>
+        <div>
+          <div class="typewriter" id="typewriter"></div><span class="cursor" id="cursor"></span>
+        </div>
+
+        <h1 class="text-5xl font-extrabold mt-6 mb-4 title-shadow">Veditor <span style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-orange)); -webkit-background-clip:text; color:transparent">— Motion & Editing</span></h1>
+
+        <p class="text-gray-300 max-w-2xl mb-6">I craft cinematic edits, motion graphics, and sound design. I turn raw footage into unforgettable visuals — reels, commercials, and social content.</p>
+
+        <div class="flex items-center gap-4">
+          <button class="btn" id="hireBtn">Hire me</button>
+          <a href="#work" class="px-4 py-2 rounded-lg border border-white/8 text-gray-200">See work</a>
+        </div>
+
+        <!-- icons -->
+        <div class="mt-8 flex items-center gap-4">
+          <div class="glow-icon" title="Premiere Pro">
+            <!-- simple purple square icon -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#E882FF"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
           </div>
 
-          <h1 class="text-5xl font-extrabold leading-tight mb-4 title-shadow">Veditor</h1>
-          <h2 class="text-xl font-semibold text-indigo-300 mb-6">Professional Video Editor & Motion Designer</h2>
-
-          <p class="text-gray-300 max-w-lg mb-6">
-            I craft high-impact visual stories — editing, motion graphics, and sound design that elevate your footage into cinematic experiences. I combine technical skill with a sharp design sense to deliver polished, memorable results.
-          </p>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <a href="#contact" class="px-5 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-400 text-white font-semibold shadow hover:scale-[1.02] transition">Hire me</a>
-            <a href="#animations" class="px-4 py-2 rounded-lg border border-white/6 text-white/90">See work</a>
+          <div class="glow-icon" title="After Effects">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#9CA3FF"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
           </div>
 
-          <!-- small stats -->
-          <div class="mt-8 grid grid-cols-3 gap-4 max-w-md">
-            <div class="skill-box p-4 text-center">
-              <div class="text-2xl font-bold text-white">5+</div>
-              <div class="text-xs text-gray-400">Years Experience</div>
-            </div>
-            <div class="skill-box p-4 text-center">
-              <div class="text-2xl font-bold text-white">50+</div>
-              <div class="text-xs text-gray-400">Projects</div>
-            </div>
-            <div class="skill-box p-4 text-center">
-              <div class="text-2xl font-bold text-white">Client Work</div>
-              <div class="text-xs text-gray-400">Remote & Agency</div>
-            </div>
+          <div class="text-sm text-gray-300 ml-4">Premiere Pro &middot; After Effects</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section id="work" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
+      <div class="card p-6 grid md:grid-cols-2 gap-6">
+        <div>
+          <h2 class="text-3xl font-bold mb-4">Featured Motion</h2>
+          <p class="text-gray-300 mb-4">Selected reels and highlights showing cinematic edits and procedural motion design.</p>
+          <a href="#projects" class="btn">View Reels</a>
+        </div>
+        <div>
+          <div style="padding-bottom:56.25%; position:relative; height:0;">
+            <iframe style="position:absolute; inset:0; width:100%; height:100%; border-radius:10px; border:0;" src="https://www.youtube.com/embed/J6FOKuBRyGU?si=9on0PzAUtoJuQIi2" title="YouTube video" allowfullscreen></iframe>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TECHNICAL SKILLS -->
-    <section class="mb-16">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-3xl font-bold">Technical Skillset</h3>
-        <div class="w-40 accent-line"></div>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-        <!-- each skill -->
-        <div class="skill-box p-4 flex flex-col items-center">
-          <svg class="w-10 h-10 mb-2" viewBox="0 0 24 24" fill="#E882FF"><path d="M16 11.25V7.75c0-.414-.336-.75-.75-.75h-2c-.414 0-.75.336-.75.75v3.5h-1.5V7.75c0-.414-.336-.75-.75-.75h-2c-.414 0-.75.336-.75.75v3.5H5.25c-.414 0-.75.336-.75.75v2c0 .414.336.75.75.75H8.5v3.5c0 .414.336.75.75.75h2c.414 0 .75-.336.75-.75v-3.5h1.5v3.5c0 .414.336.75.75.75h2c.414 0 .75-.336.75-.75v-3.5h3.25c.414 0 .75-.336.75-.75v-2c0-.414-.336-.75-.75-.75H16zM13 13.5h-2v-1.5h2v1.5z"/></svg>
-          <div class="font-semibold text-gray-200">Premiere Pro</div>
-        </div>
-
-        <div class="skill-box p-4 flex flex-col items-center">
-          <svg class="w-10 h-10 mb-2" viewBox="0 0 24 24" fill="#9999FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14v2h2V6h-2zm-3 8h2v2H8v-2zm8 0h-2v2h2v-2zm-3-4h-2v2h2v-2z"/></svg>
-          <div class="font-semibold text-gray-200">After Effects</div>
-        </div>
-
-        <div class="skill-box p-4 flex flex-col items-center">
-          <svg class="w-10 h-10 mb-2" viewBox="0 0 24 24" fill="#FBBF24"><path d="M12 2L2 22h20L12 2zm0 16.5l-3-6h6l-3 6z"/></svg>
-          <div class="font-semibold text-gray-200">Cinema 4D</div>
-        </div>
-
-        <div class="skill-box p-4 flex flex-col items-center">
-          <svg class="w-10 h-10 mb-2" viewBox="0 0 24 24" fill="#F87171"><path d="M18 9c0-.414-.336-.75-.75-.75h-1.5c-.414 0-.75.336-.75.75v6c0 .414.336.75.75.75h1.5c.414 0 .75-.336.75-.75V9zm-5.5 0c0-.414-.336-.75-.75-.75H10c-.414 0-.75.336-.75.75v6c0 .414.336.75.75.75h1.5c.414 0 .75-.336.75-.75V9zM7 9c0-.414-.336-.75-.75-.75H4.75c-.414 0-.75.336-.75.75v6c0 .414.336.75.75.75H6.25c.414 0 .75-.336.75-.75V9zM21 4h-2.5c-.276 0-.5.224-.5.5v15c0 .276.224.5.5.5H21c.276 0 .5-.224.5-.5V4.5c0-.276-.224-.5-.5-.5zM3 4H5.5c.276 0 .5.224.5.5v15c0 .276-.224.5-.5.5H3c-.276 0-.5-.224-.5-.5V4.5c0-.276.224-.5.5-.5z"/></svg>
-          <div class="font-semibold text-gray-200">DaVinci Resolve</div>
-        </div>
-
-        <div class="skill-box p-4 flex flex-col items-center">
-          <svg class="w-10 h-10 mb-2" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L15 15m0 0l4.586-4.586a2 2 0 012.828 0L20 18m-4.757-4.757l3.03 3.03M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <div class="font-semibold text-gray-200">Storyboarding</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ANIMATIONS / VIDEO GRID -->
-    <section id="animations" class="mb-16">
-      <h3 class="text-3xl font-bold mb-6">Motion & Animations</h3>
-      <p class="text-gray-400 max-w-3xl mb-8">A dynamic mix of motion graphics, 3D renders, and animated short-form content.</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="card p-4 lg:col-span-2">
-          <div class="video-container relative" style="padding-bottom:56.25%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/J6FOKuBRyGU?si=9on0PzAUtoJuQIi2" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-xl font-semibold mt-4">Project: The Glitch (3D Abstract)</h4>
-          <p class="text-sm text-indigo-300">Software: After Effects, Cinema 4D</p>
-        </div>
-
-        <div class="card p-6 lg:col-span-2 flex flex-col justify-between">
-          <div>
-            <h4 class="text-2xl font-bold text-pink-400 mb-3">Narrative Focus</h4>
-            <p class="text-gray-300">This animation is a personal exercise combining complex procedural textures with character rigging to tell an intense sci-fi narrative.</p>
-          </div>
-          <div class="mt-4">
-            <span class="inline-block px-3 py-1 bg-pink-700/20 rounded-full text-pink-300 text-sm">3D Modeling</span>
-            <span class="inline-block px-3 py-1 bg-pink-700/20 rounded-full text-pink-300 text-sm ml-2">Sound Design</span>
-          </div>
-        </div>
-
-        <div class="card p-4">
-          <div class="video-container-vertical relative" style="padding-bottom:177.77%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/kUHpL-QXJ_Q" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-lg font-semibold mt-4">Vertical Short: The Drop</h4>
-          <p class="text-sm text-indigo-300">Format: 9:16 | Platform: Social Media</p>
-        </div>
-
-        <div class="card p-4">
-          <div class="video-container-vertical relative" style="padding-bottom:177.77%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/I7jRDOrUwek" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-lg font-semibold mt-4">Vertical Short: Geometry</h4>
-          <p class="text-sm text-indigo-300">Format: 9:16 | Style: Abstract Motion</p>
-        </div>
-
-        <div class="card p-4 lg:col-span-2">
-          <div class="video-container relative" style="padding-bottom:56.25%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/AOotsDIY_7E?si=Nj25A92aqXt1qta6" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-xl font-semibold mt-4">Client Explainer Graphics</h4>
-          <p class="text-sm text-indigo-300">Role: Motion Graphics Lead | Style: Flat Design</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- OLD PROJECTS -->
-    <section id="old-projects" class="mb-16">
-      <h3 class="text-3xl font-bold mb-6">Foundational Work</h3>
-      <p class="text-gray-400 max-w-3xl mb-8">Early projects showcasing foundational editing skills and passion for narrative.</p>
-
+    <!-- PROJECTS -->
+    <section id="projects" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
+      <h3 class="text-3xl font-bold mb-6">Projects</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="card p-4">
-          <div class="video-container relative" style="padding-bottom:56.25%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/8f-W-MXGCG8?si=9A-Qr5awMwOQxQAp" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-lg font-semibold mt-4">Student Short Film: The Watcher</h4>
-          <p class="text-sm text-indigo-300">Year: 2020 | Focus: Pacing & Mood</p>
+        <div class="card">
+          <div style="height:180px; background-image:url('bg-layer1.jpg'); background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
+          <h4 class="font-semibold">Client Explainer</h4>
+          <p class="text-gray-400 text-sm">Motion design & editorial.</p>
         </div>
-
-        <div class="card p-4">
-          <div class="video-container relative" style="padding-bottom:56.25%; height:0;">
-            <iframe class="absolute inset-0 w-full h-full rounded-md" src="https://www.youtube.com/embed/Q9bKOIZ5mbc?si=IvyDGsF-XXjMkINQ" frameborder="0" allowfullscreen></iframe>
-          </div>
-          <h4 class="text-lg font-semibold mt-4">Music Video Project: Rhythmic Cut</h4>
-          <p class="text-sm text-indigo-300">Year: 2020 | Focus: Sync & Energy</p>
+        <div class="card">
+          <div style="height:180px; background-image:url('bg-orange.jpg'); background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
+          <h4 class="font-semibold">Cinematic Reel</h4>
+          <p class="text-gray-400 text-sm">Color grading and pacing.</p>
         </div>
-
-        <div class="card p-6 text-center">
-          <h4 class="text-2xl font-bold text-gray-300 mb-3">Where It All Began</h4>
-          <p class="text-gray-400">These projects laid the groundwork for my current style. They demonstrate a strong foundational understanding of cinematic language and narrative structure.</p>
-          <a href="#about" class="mt-5 inline-block px-4 py-2 rounded bg-indigo-600 text-white">View Current Skills &rarr;</a>
+        <div class="card">
+          <div style="height:180px; background-image:url('bg-forest.jpg'); background-size:cover; background-position:center; border-radius:8px; margin-bottom:12px;"></div>
+          <h4 class="font-semibold">Short: The Drop</h4>
+          <p class="text-gray-400 text-sm">Vertical format social content.</p>
         </div>
       </div>
     </section>
 
     <!-- CONTACT -->
-    <section id="contact" class="mb-12">
-      <div class="card p-8 md:p-12">
-        <div class="grid md:grid-cols-2 gap-8 items-center">
+    <section id="contact" class="max-w-6xl mx-auto px-6" style="position:relative; z-index:3;">
+      <div class="card p-6">
+        <div class="grid md:grid-cols-2 gap-6 items-center">
           <div>
-            <h3 class="text-3xl font-bold mb-3">Connect & Collaborate</h3>
-            <p class="text-gray-300 mb-6">Ready to bring your vision to life? Contact me for project inquiries or collaborations.</p>
-
-            <div class="flex flex-col sm:flex-row gap-4">
-              <a href="mailto:ryansection25@gmail.com" class="px-6 py-3 rounded-md bg-gradient-to-r from-indigo-600 to-orange-500 text-white font-semibold">Email Me</a>
-              <a href="https://www.instagram.com/v_ed1tor" target="_blank" class="px-6 py-3 rounded-md bg-pink-600 text-white font-semibold">Instagram</a>
+            <h3 class="text-2xl font-bold mb-2">Get in touch</h3>
+            <p class="text-gray-300 mb-4">Let's collaborate on your next project. I’m available for freelance work and creative partnerships.</p>
+            <a href="mailto:ryansection25@gmail.com" class="btn">Email</a>
+          </div>
+          <form class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <input class="p-3 bg-transparent border border-white/6 rounded" placeholder="Your name" />
+              <input class="p-3 bg-transparent border border-white/6 rounded" placeholder="Email" />
             </div>
-          </div>
-
-          <div>
-            <form action="#" class="space-y-4">
-              <div class="grid grid-cols-2 gap-3">
-                <input class="w-full p-3 bg-transparent border border-white/6 rounded" placeholder="Your name" />
-                <input class="w-full p-3 bg-transparent border border-white/6 rounded" placeholder="Email" />
-              </div>
-              <textarea class="w-full p-3 bg-transparent border border-white/6 rounded" rows="4" placeholder="Project details"></textarea>
-              <div class="flex justify-end">
-                <button type="submit" class="px-6 py-3 rounded-md bg-gradient-to-r from-indigo-600 to-orange-500 text-white font-semibold">Send Message</button>
-              </div>
-            </form>
-          </div>
+            <textarea class="w-full p-3 bg-transparent border border-white/6 rounded" rows="4" placeholder="Project details"></textarea>
+            <div class="text-right">
+              <button class="btn">Send Message</button>
+            </div>
+          </form>
         </div>
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="mt-12 text-center text-gray-400">
-      <div class="max-w-7xl mx-auto px-6 py-6">
-        <p class="text-sm">**Veditor** &copy; 2024. All rights reserved. | Designed with a dark professional aesthetic.</p>
-      </div>
+    <footer class="text-center text-gray-500 py-6" style="position:relative; z-index:3;">
+      <p>Veditor © 2024 — Motion & Editing</p>
     </footer>
-
   </main>
 
+  <!-- JS: typing, portrait animation, particles, bg parallax -->
   <script>
-    // mobile menu toggle
-    const menuBtn = document.getElementById('menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-    menuBtn && menuBtn.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-    });
+    /***** typing loop (auto type + erase loop) *****/
+    (function(){
+      const lines = ["Hello, I'm Veditor.", "Video Editor.", "Visual Storyteller.", "I Bring Stories to Life."];
+      const el = document.getElementById('typewriter');
+      const cursor = document.getElementById('cursor');
+      const typingSpeed = 60;
+      const erasingSpeed = 30;
+      const delayBetween = 1200;
+      let li=0, ch=0, typing=true;
 
-    // smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
-      link.addEventListener('click', function(e) {
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          e.preventDefault();
-          const header = document.querySelector('header');
-          const top = target.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 24);
-          window.scrollTo({ top, behavior: 'smooth' });
+      function typeLoop(){
+        const current = lines[li];
+        if(typing){
+          if(ch < current.length){
+            el.textContent += current.charAt(ch);
+            ch++;
+            setTimeout(typeLoop, typingSpeed);
+          } else {
+            typing=false;
+            setTimeout(typeLoop, delayBetween);
+          }
+        } else {
+          if(ch > 0){
+            el.textContent = current.substring(0, ch-1);
+            ch--;
+            setTimeout(typeLoop, erasingSpeed);
+          } else {
+            typing=true;
+            li = (li+1) % lines.length;
+            setTimeout(typeLoop, 250);
+          }
+        }
+      }
+      // start after small delay
+      setTimeout(typeLoop, 500);
+    })();
+
+    /***** portrait slide-up on load and hide on scroll *****/
+    (function(){
+      const portraitWrap = document.getElementById('portraitWrap');
+      // slide up using GSAP for smoothness
+      window.addEventListener('load', () => {
+        gsap.to(portraitWrap, { y:0, opacity:1, duration:1.0, ease:"power3.out" });
+      });
+
+      // hide on scroll down, show on scroll up
+      let lastY = window.scrollY;
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if(!ticking){
+          window.requestAnimationFrame(()=> {
+            const cur = window.scrollY;
+            if(cur > lastY + 12){ // scrolling down
+              gsap.to(portraitWrap, { y:120, opacity:0, duration:.5, ease:"power2.in" });
+            } else if(cur < lastY - 12){ // scrolling up
+              gsap.to(portraitWrap, { y:0, opacity:1, duration:.6, ease:"power3.out" });
+            }
+            lastY = cur;
+            ticking=false;
+          });
+          ticking=true;
         }
       });
-    });
-  </script>
+    })();
 
+    /***** parallax movement for background layers (subtle) *****/
+    (function(){
+      const lForest = document.getElementById('layer-forest');
+      const lOrange = document.getElementById('layer-orange');
+      const lLayers = document.getElementById('layer-layers');
+      window.addEventListener('scroll', () => {
+        const s = window.scrollY;
+        if(lForest) lForest.style.transform = `translateY(${s * -0.02}px) scale(1.02)`;
+        if(lOrange) lOrange.style.transform = `translateY(${s * -0.04}px) scale(1.01)`;
+        if(lLayers) lLayers.style.transform = `translateY(${s * -0.06}px) scale(1.03)`;
+      });
+    })();
+
+    /***** animated gradient is CSS (already), but we can subtly change overlay opacity based on scroll *****/
+    (function(){
+      const overlay = document.querySelector('.gradient-overlay');
+      window.addEventListener('scroll', () => {
+        const s = Math.min(window.scrollY, 500);
+        // slightly increase darkness with scroll
+        overlay.style.opacity = 0.82 - (s / 2500);
+      });
+    })();
+
+    /***** soft floating particles (canvas) *****/
+    (function(){
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = innerWidth;
+      let h = canvas.height = innerHeight;
+      const particles = [];
+      const count = Math.floor((w*h) / 90000); // scales with size
+      function rand(min,max){ return Math.random()*(max-min)+min; }
+      function create(){
+        for(let i=0;i<count;i++){
+          particles.push({
+            x: rand(0,w),
+            y: rand(0,h),
+            r: rand(6,28),
+            vx: rand(-0.02,0.02),
+            vy: rand(-0.04,0.04),
+            opacity: rand(0.03,0.12),
+            hueShift: rand(0,360),
+            drift: rand(0.1,1.2)
+          });
+        }
+      }
+      function resize(){
+        w = canvas.width = innerWidth;
+        h = canvas.height = innerHeight;
+      }
+      window.addEventListener('resize', () => { resize(); particles.length=0; create(); });
+      create();
+
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(let p of particles){
+          p.x += p.vx;
+          p.y += p.vy;
+          // wrap
+          if(p.x < -100) p.x = w + 100;
+          if(p.x > w + 100) p.x = -100;
+          if(p.y < -100) p.y = h + 100;
+          if(p.y > h + 100) p.y = -100;
+          // subtle color shift mixing accent colors
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+          // combine orange/blue/purple hues softly
+          grad.addColorStop(0, `rgba(255,122,0,${p.opacity*1.0})`);
+          grad.addColorStop(0.45, `rgba(43,0,107,${p.opacity*0.45})`);
+          grad.addColorStop(1, `rgba(6,18,64,0)`);
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /***** small UX: smooth anchor scroll for header links *****/
+    (function(){
+      document.querySelectorAll('a[href^="#"]').forEach(a=>{
+        a.addEventListener('click', (ev)=>{
+          const target = document.querySelector(a.getAttribute('href'));
+          if(target){
+            ev.preventDefault();
+            window.scrollTo({ top: target.offsetTop - 80, behavior:'smooth' });
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
+
 
 
 
